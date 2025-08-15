@@ -354,27 +354,27 @@ if [ "$PERFORM_SMB_UPLOAD" = true ] || [ "$PERFORM_SMB_DOWNLOAD" = true ]; then
             fi
             if [ "$PERFORM_SMB_DOWNLOAD" = true ]; then
                 echo ""; echo "--- 共通インストーラーのダウンロード確認 ---"
-                SMB_D_APP_PATH_ON_SHARE="Symantec/SEP Cloud版 オンラインインストーラー 14.3 RU9(Tokyo_Mac)/Install Symantec Endpoint Protection.app"; SMB_D_PKG_FILE_PATH_ON_SHARE="Software/Microsoft_365_and_Office_16.87.24071426_BusinessPro_Installer.pkg"
+                SMB_D_APP_PATH_ON_SHARE="Symantec/SEP Cloud版 オンラインインストーラー 14.3 RU9(Tokyo_Mac)/SEP_package_downloader.zip"; SMB_D_PKG_FILE_PATH_ON_SHARE="Software/Microsoft_365_and_Office_16.87.24071426_BusinessPro_Installer.pkg"
                 USER_DESKTOP_PATH=""; LOGGED_IN_USER=$(stat -f%Su /dev/console)
                 if [ -n "$LOGGED_IN_USER" ] && [ "$LOGGED_IN_USER" != "root" ]; then USER_HOME_DIR=$(dscl . -read "/Users/$LOGGED_IN_USER" NFSHomeDirectory | awk '{print $2}'); if [ -d "$USER_HOME_DIR/Desktop" ]; then USER_DESKTOP_PATH="$USER_HOME_DIR/Desktop"; fi;fi
                 if [ -z "$USER_DESKTOP_PATH" ] || ! [ -d "$USER_DESKTOP_PATH" ] ; then USER_DESKTOP_PATH="$HOME/Desktop"; fi
                 if [ ! -d "$USER_DESKTOP_PATH" ]; then echo "⚠️ ダウンロード先デスクトップフォルダが見つかりません。ダウンロード処理を中止します。"; else
                     echo "ダウンロード先デスクトップ: $USER_DESKTOP_PATH"; USER_CHOICE_DOWNLOAD_APP_CONFIRMED=false; USER_CHOICE_DOWNLOAD_PKG_CONFIRMED=false
-                    APP_NAME_TO_COPY=$(basename "$SMB_D_APP_PATH_ON_SHARE"); echo ""; echo "ダウンロード候補 1: アプリケーション「${APP_NAME_TO_COPY}」"; echo "  (共有上のフルパス: $SMB_D_APP_PATH_ON_SHARE)"
-                    read -p "このアプリケーションをデスクトップにダウンロードしますか？ [Y/n]: " CONFIRM_DOWNLOAD_APP_INPUT; if [[ "${CONFIRM_DOWNLOAD_APP_INPUT:-Y}" =~ ^[Yy]$ ]]; then USER_CHOICE_DOWNLOAD_APP_CONFIRMED=true; fi
+                    APP_NAME_TO_COPY=$(basename "$SMB_D_APP_PATH_ON_SHARE"); echo ""; echo "ダウンロード候補 1: アイテム「${APP_NAME_TO_COPY}」"; echo "  (共有上のフルパス: $SMB_D_APP_PATH_ON_SHARE)"
+                    read -p "このアイテムをデスクトップにダウンロードしますか？ [Y/n]: " CONFIRM_DOWNLOAD_APP_INPUT; if [[ "${CONFIRM_DOWNLOAD_APP_INPUT:-Y}" =~ ^[Yy]$ ]]; then USER_CHOICE_DOWNLOAD_APP_CONFIRMED=true; fi
                     PKG_NAME_TO_COPY=$(basename "$SMB_D_PKG_FILE_PATH_ON_SHARE"); echo ""; echo "ダウンロード候補 2: パッケージ「${PKG_NAME_TO_COPY}」"; echo "  (共有上のフルパス: $SMB_D_PKG_FILE_PATH_ON_SHARE)"
                     read -p "このパッケージをデスクトップにダウンロードしますか？ [Y/n]: " CONFIRM_DOWNLOAD_PKG_INPUT; if [[ "${CONFIRM_DOWNLOAD_PKG_INPUT:-Y}" =~ ^[Yy]$ ]]; then USER_CHOICE_DOWNLOAD_PKG_CONFIRMED=true; fi
                     echo ""; DOWNLOADS_ATTEMPTED=0; DOWNLOADS_SUCCEEDED=0
                     if [ "$USER_CHOICE_DOWNLOAD_APP_CONFIRMED" = true ]; then
                         DOWNLOADS_ATTEMPTED=$((DOWNLOADS_ATTEMPTED + 1)); APP_NAME_TO_COPY_EXEC=$(basename "$SMB_D_APP_PATH_ON_SHARE")
-                        echo "--- アプリケーション「${APP_NAME_TO_COPY_EXEC}」のダウンロード処理実行 ---"; SOURCE_APP_FULL_PATH="${FINAL_TARGET_BASE}/${SMB_D_APP_PATH_ON_SHARE}"; echo "rsync を使用してコピー中 (進捗表示あり)..."
-                        if [ -d "$SOURCE_APP_FULL_PATH" ]; then rsync -ah --progress "$SOURCE_APP_FULL_PATH" "$USER_DESKTOP_PATH/"; if [ $? -eq 0 ]; then echo "✅ アプリケーション「${APP_NAME_TO_COPY_EXEC}」のコピーに成功しました。"; DOWNLOADS_SUCCEEDED=$((DOWNLOADS_SUCCEEDED + 1)); else echo "⚠️ アプリケーション「${APP_NAME_TO_COPY_EXEC}」のコピーに失敗しました。"; fi
-                        else echo "⚠️ コピー元アプリケーション「${APP_NAME_TO_COPY_EXEC}」が見つかりません: \"$SOURCE_APP_FULL_PATH\""; fi; echo ""
+                        echo "--- アイテム「${APP_NAME_TO_COPY_EXEC}」のダウンロード処理実行 ---"; SOURCE_APP_FULL_PATH="${FINAL_TARGET_BASE}/${SMB_D_APP_PATH_ON_SHARE}"; echo "rsync を使用してコピー中 (進捗表示あり)..."
+                        if [ -e "$SOURCE_APP_FULL_PATH" ]; then rsync -ah --progress "$SOURCE_APP_FULL_PATH" "$USER_DESKTOP_PATH/"; if [ $? -eq 0 ]; then echo "✅ アイテム「${APP_NAME_TO_COPY_EXEC}」のコピーに成功しました。"; DOWNLOADS_SUCCEEDED=$((DOWNLOADS_SUCCEEDED + 1)); else echo "⚠️ アイテム「${APP_NAME_TO_COPY_EXEC}」のコピーに失敗しました。"; fi
+                        else echo "⚠️ コピー元アイテム「${APP_NAME_TO_COPY_EXEC}」が見つかりません: \"$SOURCE_APP_FULL_PATH\""; fi; echo ""
                     fi
                     if [ "$USER_CHOICE_DOWNLOAD_PKG_CONFIRMED" = true ]; then
                         DOWNLOADS_ATTEMPTED=$((DOWNLOADS_ATTEMPTED + 1)); PKG_NAME_TO_COPY_EXEC=$(basename "$SMB_D_PKG_FILE_PATH_ON_SHARE")
                         echo "--- パッケージ「${PKG_NAME_TO_COPY_EXEC}」のダウンロード処理実行 ---"; SOURCE_PKG_FILE_FULL_PATH="${FINAL_TARGET_BASE}/${SMB_D_PKG_FILE_PATH_ON_SHARE}"; echo "rsync を使用してコピー中 (進捗表示あり)..."
-                        if [ -f "$SOURCE_PKG_FILE_FULL_PATH" ]; then rsync -ah --progress "$SOURCE_PKG_FILE_FULL_PATH" "$USER_DESKTOP_PATH/"; if [ $? -eq 0 ]; then echo "✅ ファイル「${PKG_NAME_TO_COPY_EXEC}」のコピーに成功しました。"; DOWNLOADS_SUCCEEDED=$((DOWNLOADS_SUCCEEDED + 1)); else echo "⚠️ ファイル「${PKG_NAME_TO_COPY_EXEC}」のコピーに失敗しました。"; fi
+                        if [ -e "$SOURCE_PKG_FILE_FULL_PATH" ]; then rsync -ah --progress "$SOURCE_PKG_FILE_FULL_PATH" "$USER_DESKTOP_PATH/"; if [ $? -eq 0 ]; then echo "✅ ファイル「${PKG_NAME_TO_COPY_EXEC}」のコピーに成功しました。"; DOWNLOADS_SUCCEEDED=$((DOWNLOADS_SUCCEEDED + 1)); else echo "⚠️ ファイル「${PKG_NAME_TO_COPY_EXEC}」のコピーに失敗しました。"; fi
                         else echo "⚠️ コピー元ファイル「${PKG_NAME_TO_COPY_EXEC}」が見つかりません: \"$SOURCE_PKG_FILE_FULL_PATH\""; fi; echo ""
                     fi
                     echo ""; if [ "$DOWNLOADS_ATTEMPTED" -eq 0 ]; then if [ "$USER_CHOICE_DOWNLOAD_APP_CONFIRMED" = false ] && [ "$USER_CHOICE_DOWNLOAD_PKG_CONFIRMED" = false ]; then echo "個別の確認ですべてのアイテムがスキップされたため、ダウンロードは実行されませんでした。"; fi
