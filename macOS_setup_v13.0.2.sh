@@ -281,7 +281,7 @@ if [[ "$USER_CHOICE_DOWNLOAD_FILES" =~ ^[Yy]$ ]]; then PERFORM_SMB_DOWNLOAD=true
 if [ "$PERFORM_SMB_UPLOAD" = true ] || [ "$PERFORM_SMB_DOWNLOAD" = true ]; then
     SMB_SERVER="nas.aiming.local"; SMB_USER="aiming"; DEFAULT_SMB_SHARE_NAME="INFRA-SETUP"
     echo ""; echo "SMBサーバの情報:"; echo "  サーバアドレス: $SMB_SERVER"; echo "  ユーザー名: $SMB_USER"; echo ""
-    read -p "接続するSMB共有名を入力してください [$DEFAULT_SMB_SHARE_NAME]: " INPUT_SMB_SHARE_NAME
+    read -p "接続するSMB共有名を入力してください（デフォルトは $DEFAULT_SMB_SHARE_NAME）[$DEFAULT_SMB_SHARE_NAME]: " INPUT_SMB_SHARE_NAME
     SMB_SHARE_NAME_TO_USE=${INPUT_SMB_SHARE_NAME:-$DEFAULT_SMB_SHARE_NAME}
     if [ -z "$SMB_SHARE_NAME_TO_USE" ]; then echo "⚠️ SMB共有名が指定されなかったため、SMB操作を中止します。"; else
         SMB_URL_FOR_CHECK="//${SMB_USER}@${SMB_SERVER}/${SMB_SHARE_NAME_TO_USE}"; STANDARD_GUI_MOUNT_POINT="/Volumes/${SMB_SHARE_NAME_TO_USE}"
