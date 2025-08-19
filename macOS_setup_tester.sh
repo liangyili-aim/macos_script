@@ -261,7 +261,6 @@ fi
 
 # --- SMB操作 (ログファイルのアップロードと共通インストーラーのダウンロード) ---
 # (この部分は前回のスクリプトから変更なし)
-# ... (SMB操作の全ロジック) ...
 echo ""
 echo "---------------------------------------------------------------------"
 echo "📤📂 SMBサーバへのファイル操作 (ログアップロード/インストーラーダウンロード)"
@@ -400,6 +399,48 @@ if [ "$PERFORM_SMB_UPLOAD" = true ] || [ "$PERFORM_SMB_DOWNLOAD" = true ]; then
         else echo "⚠️ SMB接続またはマウントに失敗したため、ファイル操作を中止します。"; fi
     fi
 else echo "SMBサーバへのファイル操作（アップロード・ダウンロード）はスキップされました。"; fi
+
+
+# --- マシンの種類を選択 ---
+echo ""
+echo "---------------------------------------------------------------------"
+echo "どのタイプのマシンをセットアップしますか？"
+echo "  1) 通常PC"
+echo "  2) ビルドマシン"
+echo "  3) ビルドマシン (Caravan)"
+echo "---------------------------------------------------------------------"
+read -p "番号を選択してください: " MACHINE_TYPE_CHOICE
+
+case "$MACHINE_TYPE_CHOICE" in
+    1)
+        echo "通常PC用のインストーラーパスを設定します。"
+        SMB_D_APP_PATH_ON_SHARE="Symantec/SEP Cloud版 オンラインインストーラー 14.3 RU9(Tokyo_Mac)/Install Symantec Endpoint Protection.app"
+        SMB_D_PKG_FILE_PATH_ON_SHARE="Software/Microsoft_365_and_Office_16.87.24071426_BusinessPro_Installer.pkg"
+        ;;
+    2)
+        echo "ビルドマシン用のインストーラーパスを設定します。"
+        # TODO: ビルドマシン用の正しいパスに更新してください
+        SMB_D_APP_PATH_ON_SHARE="Symantec/SEP Cloud版 オンラインインストーラー 14.3 RU9(Tokyo_Mac_BuildMachine)/Install Symantec Endpoint Protection.app" 
+        SMB_D_PKG_FILE_PATH_ON_SHARE="Software/Microsoft_365_and_Office_16.87.24071426_BusinessPro_Installer.pkg"
+        ;;
+    #3)
+    #    echo "ビルドマシン (Caravan)用のインストーラーパスを設定します。"
+    #    # TODO: Caravanビルドマシン用の正しいパスに更新してください
+    #    SMB_D_APP_PATH_ON_SHARE="Caravan/Path/To/YourApp.zip"
+    #    SMB_D_PKG_FILE_PATH_ON_SHARE="Software/Microsoft_365_and_Office_16.87.24071426_BusinessPro_Installer.pkg"
+    #    ;;
+    *)
+        echo "⚠️ 無効な選択です。ダウンロード処理を中止します。"
+        # この時点でSMBがマウントされている可能性があるので、アンマウント処理を試みる
+        if [ "$DO_MOUNT_UNMOUNT_BY_SCRIPT" = true ] && [ -n "$LOCAL_TEMP_MOUNT_POINT" ] && mount | grep -q " on ${LOCAL_TEMP_MOUNT_POINT} "; then
+            echo "一時マウントをクリーンアップしています..."
+            diskutil unmount force "$LOCAL_TEMP_MOUNT_POINT" >/dev/null 2>&1
+            rmdir "$LOCAL_TEMP_MOUNT_POINT" >/dev/null 2>&1
+        fi
+        exit 1
+        ;;
+esac
+echo "---------------------------------------------------------------------"
 
 
 echo ""

@@ -242,12 +242,12 @@ if [[ "$USER_CHOICE_CREATE_ADMIN" =~ ^[Yy]$ ]]; then
                         fi
 
                         # 2. FileVault追加後に、パスワード変更ポリシーを設定する
-                        echo "  次回ログイン時にパスワード変更を要求するように設定中..."
-                        if sudo pwpolicy -u "$NEW_ADMIN_SHORTNAME" -setpolicy "newPasswordRequired=1"; then
-                            echo "  ✅ 次回ログイン時のパスワード変更要求が設定されました。"
-                        else
-                            echo "  ⚠️ 次回ログイン時のパスワード変更要求の設定に失敗しました。"
-                        fi
+                        # echo "  次回ログイン時にパスワード変更を要求するように設定中..."
+                        # if sudo pwpolicy -u "$NEW_ADMIN_SHORTNAME" -setpolicy "newPasswordRequired=1"; then
+                        #     echo "  ✅ 次回ログイン時のパスワード変更要求が設定されました。"
+                        # else
+                        #     echo "  ⚠️ 次回ログイン時のパスワード変更要求の設定に失敗しました。"
+                        # fi
 
                     else echo "⚠️ ユーザー「${NEW_ADMIN_SHORTNAME}」を管理者グループに追加できませんでした。";fi
                 else echo "⚠️ 定義済みパスワードの設定に失敗しました。";fi
