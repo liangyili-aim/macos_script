@@ -7,7 +7,6 @@ TMP_FULL_LOG_FILE=$(mktemp) # 一時ファイルは最初に作成
 
 
 # --- コンピュータ名とローカルホスト名の設定 ---
-# (この部分は前回のスクリプトから変更なし)
 echo "---------------------------------------------------------------------"
 echo "🖥️  まず、コンピュータ名とローカルホスト名を設定します。"
 echo "---------------------------------------------------------------------"
@@ -76,7 +75,7 @@ echo "---------------------------------------------------------------------"
 echo ""
 
 # --- FileVaultステータス確認と有効化プロセス ---
-# (この部分は前回のスクリプトから変更なし)
+
 echo "🔒 FileVault の状態を確認します..."
 FV_STATUS=$(sudo fdesetup status)
 echo "現在のFileVaultステータス: $FV_STATUS"
@@ -269,7 +268,6 @@ echo "---------------------------------------------------------------------"
 echo ""
 
 # --- SMB操作 (ログファイルのアップロードと共通インストーラーのダウンロード) ---
-# (この部分は前回のスクリプトから変更なし)
 # ... (SMB操作の全ロジック) ...
 echo ""
 echo "---------------------------------------------------------------------"
@@ -306,7 +304,7 @@ if [ "$PERFORM_SMB_UPLOAD" = true ] || [ "$PERFORM_SMB_DOWNLOAD" = true ]; then
             if mount | grep -q -F " on ${LOCAL_TEMP_MOUNT_POINT} "; then echo "⚠️ 致命的エラー: 一時マウントポイントパス '${LOCAL_TEMP_MOUNT_POINT}' は既に他のファイルシステムとして使用されています。"; CAN_PROCEED_WITH_TEMP_MOUNT=false;
             else mkdir -p "$LOCAL_TEMP_MOUNT_POINT"; if [ ! -d "$LOCAL_TEMP_MOUNT_POINT" ]; then echo "⚠️ 一時マウントポイントの作成に失敗しました: $LOCAL_TEMP_MOUNT_POINT"; CAN_PROCEED_WITH_TEMP_MOUNT=false; fi;fi
             
-            # <--- 修正箇所 開始 ---
+            # <--- SMBログインロジック ---
             if [ "$CAN_PROCEED_WITH_TEMP_MOUNT" = true ]; then
                 while true; do
                     MOUNT_URL="//${SMB_USER}@${SMB_SERVER}/${SMB_SHARE_NAME_TO_USE}"
@@ -343,7 +341,7 @@ if [ "$PERFORM_SMB_UPLOAD" = true ] || [ "$PERFORM_SMB_DOWNLOAD" = true ]; then
             else
                  LOCAL_TEMP_MOUNT_POINT=""
             fi
-            # <--- 修正箇所 終了 ---
+            # <--- SMBログインロジック 終了 ---
         fi
         if [ -n "$FINAL_TARGET_BASE" ]; then
             if [ "$PERFORM_SMB_UPLOAD" = true ]; then
