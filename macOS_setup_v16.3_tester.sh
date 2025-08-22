@@ -191,15 +191,15 @@ validate_username() {
 setup_automation() {
     echo "🤖 自動設定（v16テスター版）"
     echo "---------------------------------------------------------------------"
-    echo "管理者パスワード事前設定："
-    echo "以下の操作を自動化します："
+    echo "管理者パスワード事前設定による、以下の操作を自動化にします："
+    # echo "以下の操作を自動化します："
     echo "  • sudo操作（コンピュータ名設定、ユーザー作成など）"
-    echo "  • FileVault有効化（plist方式で確実実行）"
+    echo "  • FileVault有効化（plist方式）"
     echo "  • SecureToken設定"
-    echo ""
-    echo "⚠️  セキュリティ保証："
-    echo "  • パスワードはメモリ内でのみ保持、ログ記録なし"
-    echo "  • スクリプト終了時に自動的にクリア"
+    # echo ""
+    # echo "⚠️  セキュリティ保証："
+    # echo "  • パスワードはメモリ内でのみ保持、ログ記録なし"
+    # echo "  • スクリプト終了時に自動的にクリア"
     echo "---------------------------------------------------------------------"
     
     local current_admin_user="${SUDO_USER:-$(whoami)}"
@@ -337,7 +337,7 @@ create_admin_user() {
     if [[ "$DEBUG_MODE" == true ]]; then
         echo "🐛 DEBUG: ユーザー作成コマンド実行"
         echo "🐛 DEBUG: $create_command"
-        printf '%s\n' "$STORED_ADMIN_PASSWORD" | sudo -S $create_command
+        printf '%s\n' "$STORED_ADMIN_PASSWORD" | sudo -S eval "$create_command"
         local create_result=$?
         echo "🐛 DEBUG: ユーザー作成終了コード: $create_result"
     else
@@ -357,11 +357,11 @@ create_admin_user() {
             # パスワード部分をマスクして表示
             local masked_cmd="sysadminctl -adminUser "$current_admin_user" -adminPassword "***MASKED***" -secureTokenOn "$new_admin_name" -password "***MASKED***""
             echo "🐛 DEBUG: $masked_cmd"
-            printf '%s\n' "$STORED_ADMIN_PASSWORD" | sudo -S $secure_token_cmd
+            printf '%s\n' "$STORED_ADMIN_PASSWORD" | sudo -S eval "$secure_token_cmd"
             local token_result=$?
             echo "🐛 DEBUG: SecureToken設定終了コード: $token_result"
         else
-            printf '%s\n' "$STORED_ADMIN_PASSWORD" | sudo -S $secure_token_cmd 2>/dev/null
+            printf '%s\n' "$STORED_ADMIN_PASSWORD" | sudo -S eval "$secure_token_cmd" 2>/dev/null
             local token_result=$?
         fi
         
@@ -703,21 +703,33 @@ upload_logs_to_smb() {
     # パスのクリーンアップ
     upload_path=$(echo "$upload_path" | sed 's#^/*##' | sed 's#/*$##')
     
-    local final_upload_dir="$target_base"
+    local base_upload_dir="$target_base"
     if [[ -n "$upload_path" ]]; then
-        final_upload_dir="${target_base}/${upload_path}"
+        base_upload_dir="${target_base}/${upload_path}"
     fi
     
-    echo "ログアップロード先: ${final_upload_dir}"
+    # 各ログタイプ用のサブディレクトリを作成
+    local fullsession_dir="${base_upload_dir}/FullSession"
+    local recoverykey_dir="${base_upload_dir}/RecoveryKey"
     
-    if ! mkdir -p "$final_upload_dir"; then
-        echo "⚠️ ログアップロード先ディレクトリの作成に失敗: ${final_upload_dir}"
+    echo "ログアップロード先:"
+    echo "  完全セッションログ: ${fullsession_dir}"
+    echo "  復旧キーログ: ${recoverykey_dir}"
+    
+    # ディレクトリの作成
+    if ! mkdir -p "$fullsession_dir"; then
+        echo "⚠️ 完全セッションログディレクトリの作成に失敗: ${fullsession_dir}"
         return 1
     fi
     
-    # ファイルのアップロード
-    upload_single_file "$FULL_SESSION_LOG_FILE" "$final_upload_dir" "完全セッションログ"
-    upload_single_file "$RECOVERY_KEY_ONLY_LOG_FILE" "$final_upload_dir" "復旧キーログ"
+    if ! mkdir -p "$recoverykey_dir"; then
+        echo "⚠️ 復旧キーログディレクトリの作成に失敗: ${recoverykey_dir}"
+        return 1
+    fi
+    
+    # ファイルのアップロード（それぞれ専用のサブディレクトリに）
+    upload_single_file "$FULL_SESSION_LOG_FILE" "$fullsession_dir" "完全セッションログ"
+    upload_single_file "$RECOVERY_KEY_ONLY_LOG_FILE" "$recoverykey_dir" "復旧キーログ"
     
     echo "--- ログファイルアップロード終了 ---"
 }
